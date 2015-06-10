@@ -3,7 +3,8 @@ import numpy
 import ConfigParser
 import argparse
 import time
-from numpy import exp, genfromtxt, array, real
+import os
+from numpy import exp, genfromtxt, array
 
 __author__ = 'Quepas'
 
@@ -206,19 +207,6 @@ def load_config(filename):
     input_snr_filename = config.get("config", "input_snr_filename")
     output_filename_Gaussian = config.get("config", "output_filename_Gaussian")
     output_filename_Rician = config.get("config", "output_filename_Rician")
-    now = time.clock()
-    MR_noisy = genfromtxt(input_filename, delimiter=',')
-    if not input_snr_filename:
-        MR_SNR = array([0])
-        lpf = lpf_f
-    else:
-        MR_SNR = genfromtxt(input_snr_filename, delimiter=',')
-        lpf = lpf_f_SNR
-
-    (MapaR_LM, MapaG_LM) = rice_homomorf_est(MR_noisy, MR_SNR, lpf, ex_filter_type);
-    numpy.savetxt(output_filename_Gaussian, MapaG_LM, delimiter=',')
-    numpy.savetxt(output_filename_Rician, MapaR_LM, delimiter=',')
-    print "LM time : " + str(time.clock() - now) + "s"
 
 def main():
     parser = argparse.ArgumentParser()
@@ -228,11 +216,28 @@ def main():
 
     args = parser.parse_args()
     if args.config_file:
-        print 'some config file ', args.config_file
+        config_file = args.config_file[0]
+        if os.path.isfile(config_file):
+            print 'Experiment from config file [', config_file, ']'
+            now = time.clock()
+            MR_noisy = genfromtxt(input_filename, delimiter = ',')
+            if not input_snr_filename:
+                MR_SNR = array([0])
+                lpf = lpf_f
+            else:
+                MR_SNR = genfromtxt(input_snr_filename, delimiter = ',')
+                lpf = lpf_f_SNR
+
+            (MapaR_LM, MapaG_LM) = rice_homomorf_est(MR_noisy, MR_SNR, lpf, ex_filter_type);
+            numpy.savetxt(output_filename_Gaussian, MapaG_LM, delimiter = ',')
+            numpy.savetxt(output_filename_Rician, MapaR_LM, delimiter = ',')
+            print "Run time : " + str(time.clock() - now) + "s"
+        else:
+            print 'Wrong config file [', config_file, ']'
     elif args.run_example:
         run_example()
     else:
-        print 'Bye bye'
+        print 'main [-c, --config filename] [-e, --example]'
 
 if __name__ == '__main__':
     main()
