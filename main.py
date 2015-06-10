@@ -1,9 +1,33 @@
 from scipy import ndimage, special, fftpack
 import numpy
+import ConfigParser
+import argparse
 import time
 from numpy import exp, genfromtxt, array, real
 
 __author__ = 'Quepas'
+
+# 1 - local mean,
+# 2 - expectation-maximization (EM).
+ex_filter_type = 1
+# window size for E{X}
+ex_window_size = 5
+# number of iterations of the EM algorithm (used only by EM)
+ex_iterations = 10
+# sigma for LPF filter
+lpf_f = 3.4
+# sigma for LPF filter# used to smooth sigma(x) in SNR
+lpf_f_SNR = 1.2
+# sigma for LPF filter# used to smooth Rician corrected noise map
+lpf_f_Rice = 5.4
+# Noisy MR image
+input_filename = 'MR_noisy.csv'
+# Noisy MR image
+input_snr_filename = 'MR_SNR.csv'
+# estimated noise map for Gaussian case
+output_filename_Gaussian = 'MR_Gaussian_Map.csv'
+# estimated noise map for Rician case
+output_filename_Rician = 'MR_Rician_Map.csv'
 
 def filter2B(image, mask):
     (Mx, My) = mask.shape
@@ -109,7 +133,7 @@ def correct_rice_gauss(SNR):
     return rice_gauss * (SNR <= 7)
 
 def rice_homomorf_est(image, SNR = 0, LPF = 4.8, mode = 2):
-    (M2, Sigma_n) = em_ml_rice2D(image, 10, [3, 3]);
+    (M2, Sigma_n) = em_ml_rice2D(image, ex_iterations, [ex_window_size, ex_window_size])
     Sigma_n2 = lpf(Sigma_n, 1.2)
     M1 = filter2B(image, numpy.ones((5, 5)) / 25)
 
@@ -133,7 +157,7 @@ def rice_homomorf_est(image, SNR = 0, LPF = 4.8, mode = 2):
     LPF2 = lpf(lRn, LPF)
     Fc1 = correct_rice_gauss(SNR)
     LPF1 = LPF2 - Fc1
-    LPF1 = lpf(LPF1, LPF + 2, 2.)
+    LPF1 = lpf(LPF1, lpf_f_Rice, 2.)
     Mapa1 = exp(LPF1)
     MapaR = Mapa1*2/numpy.sqrt(2)*numpy.exp(-special.psi(1)/2.)
     return (MapaR, MapaG)
@@ -169,4 +193,46 @@ def run_example():
     numpy.savetxt("MapaG_LM.csv", MapaG_LM, delimiter=',')
     print "LM time : " + str(time.clock() - now) + "s"
 
-run_example()
+def load_config(filename):
+    config = ConfigParser.ConfigParser()
+    config.read(filename)
+    ex_filter_type = config.getint("config", "ex_filter_type")
+    ex_window_size = config.getint("config", "ex_window_size")
+    ex_iterations = config.getint("config", "ex_iterations")
+    lpf_f = config.getfloat("config", "lpf_f")
+    lpf_f_SNR = config.getfloat("conifg", "lpf_f_SNR")
+    lpf_f_Rice = config.getfloat("config", "lpf_f_Rice")
+    input_filename = config.get("config", "input_filename")
+    input_snr_filename = config.get("config", "input_snr_filename")
+    output_filename_Gaussian = config.get("config", "output_filename_Gaussian")
+    output_filename_Rician = config.get("config", "output_filename_Rician")
+    now = time.clock()
+    MR_noisy = genfromtxt(input_filename, delimiter=',')
+    if not input_snr_filename:
+        MR_SNR = array([0])
+        lpf = lpf_f
+    else:
+        MR_SNR = genfromtxt(input_snr_filename, delimiter=',')
+        lpf = lpf_f_SNR
+
+    (MapaR_LM, MapaG_LM) = rice_homomorf_est(MR_noisy, MR_SNR, lpf, ex_filter_type);
+    numpy.savetxt(output_filename_Gaussian, MapaG_LM, delimiter=',')
+    numpy.savetxt(output_filename_Rician, MapaR_LM, delimiter=',')
+    print "LM time : " + str(time.clock() - now) + "s"
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_mutually_exclusive_group()
+    parser.add_argument('-c', '--config', nargs=1, dest='config_file')
+    parser.add_argument('-e', '--example', action='store_true', dest='run_example')
+
+    args = parser.parse_args()
+    if args.config_file:
+        print 'some config file ', args.config_file
+    elif args.run_example:
+        run_example()
+    else:
+        print 'Bye bye'
+
+if __name__ == '__main__':
+    main()
