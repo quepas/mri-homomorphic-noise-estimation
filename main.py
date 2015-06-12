@@ -12,7 +12,7 @@ __author__ = 'Quepas'
 # 2 - expectation-maximization (EM).
 ex_filter_type = 1
 # window size for E{X}
-ex_window_size = 5
+ex_window_size = 3
 # number of iterations of the EM algorithm (used only by EM)
 ex_iterations = 10
 # sigma for LPF filter
