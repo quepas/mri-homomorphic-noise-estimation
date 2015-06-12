@@ -194,19 +194,41 @@ def run_example():
     numpy.savetxt("MapaG_LM.csv", MapaG_LM, delimiter=',')
     print "LM time : " + str(time.clock() - now) + "s"
 
-def load_config(filename):
+def run_with_config(filename):
+    global ex_window_size
+    global ex_iterations
+    global lpf_f_Rice
     config = ConfigParser.ConfigParser()
     config.read(filename)
     ex_filter_type = config.getint("config", "ex_filter_type")
     ex_window_size = config.getint("config", "ex_window_size")
     ex_iterations = config.getint("config", "ex_iterations")
     lpf_f = config.getfloat("config", "lpf_f")
-    lpf_f_SNR = config.getfloat("conifg", "lpf_f_SNR")
+    lpf_f_SNR = config.getfloat("config", "lpf_f_SNR")
     lpf_f_Rice = config.getfloat("config", "lpf_f_Rice")
     input_filename = config.get("config", "input_filename")
-    input_snr_filename = config.get("config", "input_snr_filename")
+    try:
+        input_snr_filename = config.get("config", "input_snr_filename", "")
+    except ConfigParser.NoOptionError:
+        input_snr_filename = ""
     output_filename_Gaussian = config.get("config", "output_filename_Gaussian")
     output_filename_Rician = config.get("config", "output_filename_Rician")
+    if os.path.isfile(filename):
+        print 'Experiment from config file [', filename, ']'
+        now = time.clock()
+        MR_noisy = genfromtxt(input_filename, delimiter = ',')
+        if not input_snr_filename:
+            MR_SNR = array([0])
+            lpf = lpf_f
+        else:
+            MR_SNR = genfromtxt(input_snr_filename, delimiter = ',')
+            lpf = lpf_f
+        (MapaR_LM, MapaG_LM) = rice_homomorf_est(MR_noisy, MR_SNR, lpf, ex_filter_type);
+        numpy.savetxt(output_filename_Gaussian, MapaG_LM, delimiter = ',')
+        numpy.savetxt(output_filename_Rician, MapaR_LM, delimiter = ',')
+        print "Run time : " + str(time.clock() - now) + "s"
+    else:
+        print 'Wrong config file [', filename, ']'
 
 def main():
     parser = argparse.ArgumentParser()
@@ -217,23 +239,7 @@ def main():
     args = parser.parse_args()
     if args.config_file:
         config_file = args.config_file[0]
-        if os.path.isfile(config_file):
-            print 'Experiment from config file [', config_file, ']'
-            now = time.clock()
-            MR_noisy = genfromtxt(input_filename, delimiter = ',')
-            if not input_snr_filename:
-                MR_SNR = array([0])
-                lpf = lpf_f
-            else:
-                MR_SNR = genfromtxt(input_snr_filename, delimiter = ',')
-                lpf = lpf_f_SNR
-
-            (MapaR_LM, MapaG_LM) = rice_homomorf_est(MR_noisy, MR_SNR, lpf, ex_filter_type);
-            numpy.savetxt(output_filename_Gaussian, MapaG_LM, delimiter = ',')
-            numpy.savetxt(output_filename_Rician, MapaR_LM, delimiter = ',')
-            print "Run time : " + str(time.clock() - now) + "s"
-        else:
-            print 'Wrong config file [', config_file, ']'
+        run_with_config(config_file)
     elif args.run_example:
         run_example()
     else:
