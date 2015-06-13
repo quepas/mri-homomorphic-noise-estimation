@@ -5,20 +5,20 @@ __author__ = 'quepas, jakubsieradzki'
 def build_default():
     return {
                 # Local mean (1), expectation-maximization (2)
-                'ex_filter_type' : 1,
-                'ex_window_size' : 3,
+                'ex_filter_type': 1,
+                'ex_window_size': 3,
                 # number of iterations of the EM algorithm
-                'ex_iterations' : 10,
+                'ex_iterations': 10,
                 # sigma for LPF filter
-                'lpf_f' : 3.4,
+                'lpf_f': 3.4,
                 # sigma for LPF filter used to smooth sigma(x) in SNR
-                'lpf_f_SNR' : 1.2,
+                'lpf_f_SNR': 1.2,
                 # sigma for LPF filter used to smooth Rician corrected noise map
-                'lpf_f_Rice' : 5.4,
-                'input_filename' : 'data/input/noisy.csv',
-                'input_filename_SNR' : 'data/input/snr.csv',
-                'output_filename_Gaussian' : 'data/output/gaussian_map.csv',
-                'output_filename_Rician' : 'data/output/rician_map.csv'
+                'lpf_f_Rice': 5.4,
+                'input_filename': 'data/input/noisy.csv',
+                'input_filename_SNR': 'data/input/snr.csv',
+                'output_filename_Gaussian': 'data/output/gaussian_map.csv',
+                'output_filename_Rician': 'data/output/rician_map.csv'
             }
 
 def build_from_file(filename):
