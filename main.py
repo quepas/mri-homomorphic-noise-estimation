@@ -6,7 +6,7 @@ import time
 import os
 from numpy import exp, genfromtxt, array
 
-__author__ = 'Quepas'
+__author__ = 'quepas, jakubsieradzki'
 
 # 1 - local mean,
 # 2 - expectation-maximization (EM).
@@ -163,37 +163,6 @@ def rice_homomorf_est(image, SNR = 0, LPF = 4.8, mode = 2):
     MapaR = Mapa1*2/numpy.sqrt(2)*numpy.exp(-special.psi(1)/2.)
     return (MapaR, MapaG)
 
-def run_example():
-    MR_SNR = genfromtxt('MR_SNR.csv', delimiter=',')
-    MR_noisy = genfromtxt('MR_noisy.csv', delimiter=',')
-    # estymacja EM przy znanym SNR
-    now = time.clock()
-    (MapaR_EM_SNR, MapaG_EM_SNR) = rice_homomorf_est(MR_noisy, MR_SNR, 3.4, 2);
-    numpy.savetxt("MapaR_EM_SNR.csv", MapaR_EM_SNR, delimiter=',')
-    numpy.savetxt("MapaG_EM_SNR.csv", MapaG_EM_SNR, delimiter=',')
-    print "EM_SNR time : " + str(time.clock() - now) + "s"
-
-    # estymacja EM przy nieznanym SNR
-    now = time.clock()
-    (MapaR_EM, MapaG_EM) = rice_homomorf_est(MR_noisy, array([0]), 3.4, 2);
-    numpy.savetxt("MapaR_EM.csv", MapaR_EM, delimiter=',')
-    numpy.savetxt("MapaG_EM.csv", MapaG_EM, delimiter=',')
-    print "EM time : " + str(time.clock() - now) + "s"
-
-    # estymacja local mean przy znanym SNR
-    now = time.clock()
-    (MapaR_LM_SNR, MapaG_LM_SNR) = rice_homomorf_est(MR_noisy, MR_SNR, 3.4, 1);
-    numpy.savetxt("MapaR_LM_SNR.csv", MapaR_LM_SNR, delimiter=',')
-    numpy.savetxt("MapaG_LM_SNR.csv", MapaG_LM_SNR, delimiter=',')
-    print "LM SNR time : " + str(time.clock() - now) + "s"
-
-    # estymacja local mean przy nieznanym SNR
-    now = time.clock()
-    (MapaR_LM, MapaG_LM) = rice_homomorf_est(MR_noisy, array([0]), 3.4, 1);
-    numpy.savetxt("MapaR_LM.csv", MapaR_LM, delimiter=',')
-    numpy.savetxt("MapaG_LM.csv", MapaG_LM, delimiter=',')
-    print "LM time : " + str(time.clock() - now) + "s"
-
 def run_with_config(filename):
     global ex_window_size
     global ex_iterations
@@ -229,21 +198,3 @@ def run_with_config(filename):
         print "Run time : " + str(time.clock() - now) + "s"
     else:
         print 'Wrong config file [', filename, ']'
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_mutually_exclusive_group()
-    parser.add_argument('-c', '--config', nargs=1, dest='config_file')
-    parser.add_argument('-e', '--example', action='store_true', dest='run_example')
-
-    args = parser.parse_args()
-    if args.config_file:
-        config_file = args.config_file[0]
-        run_with_config(config_file)
-    elif args.run_example:
-        run_example()
-    else:
-        print 'main [-c, --config filename] [-e, --example]'
-
-if __name__ == '__main__':
-    main()
