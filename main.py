@@ -1,35 +1,15 @@
 from scipy import ndimage, special, fftpack
+from configuration import build_default
 import numpy
-import ConfigParser
-import argparse
-import time
-import os
-from numpy import exp, genfromtxt, array
+from numpy import exp, array
 
 __author__ = 'quepas, jakubsieradzki'
 
-# 1 - local mean,
-# 2 - expectation-maximization (EM).
-ex_filter_type = 1
-# window size for E{X}
-ex_window_size = 3
-# number of iterations of the EM algorithm (used only by EM)
-ex_iterations = 10
-# sigma for LPF filter
-lpf_f = 3.4
-# sigma for LPF filter# used to smooth sigma(x) in SNR
-lpf_f_SNR = 1.2
-# sigma for LPF filter# used to smooth Rician corrected noise map
-lpf_f_Rice = 5.4
-
 def filter2B(image, mask):
     (Mx, My) = mask.shape
-    # check if Mrow and Mcol are odd
     if Mx % 2 == 0 or My % 2 == 0:
         print "Mask width and height must be odd"
         return array([])
-    Nx = (Mx - 1) / 2
-    Ny = (My - 1) / 2
     filtered_image = ndimage.filters.convolve(image, mask, mode='nearest')
     return filtered_image
 
@@ -125,9 +105,10 @@ def correct_rice_gauss(SNR):
                  c[8] * (SNR ** 8)
     return rice_gauss * (SNR <= 7)
 
-def rice_homomorf_est(image, SNR = 0, LPF = 4.8, mode = 2):
-    (M2, Sigma_n) = em_ml_rice2D(image, ex_iterations, [ex_window_size, ex_window_size])
-    Sigma_n2 = lpf(Sigma_n, 1.2)
+def rice_homomorf_est(image, SNR = 0, LPF = 4.8, mode = 2, config = build_default()):
+    window_size = config['ex_window_size']
+    (M2, Sigma_n) = em_ml_rice2D(image, config['ex_iterations'], [window_size, window_size])
+    Sigma_n2 = lpf(Sigma_n, config['lpf_f_SNR'])
     M1 = filter2B(image, numpy.ones((5, 5)) / 25)
 
     if (SNR.shape[0] == 1) and SNR == 0:
@@ -150,7 +131,7 @@ def rice_homomorf_est(image, SNR = 0, LPF = 4.8, mode = 2):
     LPF2 = lpf(lRn, LPF)
     Fc1 = correct_rice_gauss(SNR)
     LPF1 = LPF2 - Fc1
-    LPF1 = lpf(LPF1, lpf_f_Rice, 2.)
+    LPF1 = lpf(LPF1, config['lpf_f_Rice'], 2.0)
     Mapa1 = exp(LPF1)
     MapaR = Mapa1*2/numpy.sqrt(2)*numpy.exp(-special.psi(1)/2.)
-    return (MapaR, MapaG)
+    return MapaR, MapaG
