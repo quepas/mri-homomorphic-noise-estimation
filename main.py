@@ -21,14 +21,6 @@ lpf_f = 3.4
 lpf_f_SNR = 1.2
 # sigma for LPF filter# used to smooth Rician corrected noise map
 lpf_f_Rice = 5.4
-# Noisy MR image
-input_filename = 'MR_noisy.csv'
-# Noisy MR image
-input_snr_filename = 'MR_SNR.csv'
-# estimated noise map for Gaussian case
-output_filename_Gaussian = 'MR_Gaussian_Map.csv'
-# estimated noise map for Rician case
-output_filename_Rician = 'MR_Rician_Map.csv'
 
 def filter2B(image, mask):
     (Mx, My) = mask.shape
@@ -162,39 +154,3 @@ def rice_homomorf_est(image, SNR = 0, LPF = 4.8, mode = 2):
     Mapa1 = exp(LPF1)
     MapaR = Mapa1*2/numpy.sqrt(2)*numpy.exp(-special.psi(1)/2.)
     return (MapaR, MapaG)
-
-def run_with_config(filename):
-    global ex_window_size
-    global ex_iterations
-    global lpf_f_Rice
-    config = ConfigParser.ConfigParser()
-    config.read(filename)
-    ex_filter_type = config.getint("config", "ex_filter_type")
-    ex_window_size = config.getint("config", "ex_window_size")
-    ex_iterations = config.getint("config", "ex_iterations")
-    lpf_f = config.getfloat("config", "lpf_f")
-    lpf_f_SNR = config.getfloat("config", "lpf_f_SNR")
-    lpf_f_Rice = config.getfloat("config", "lpf_f_Rice")
-    input_filename = config.get("config", "input_filename")
-    try:
-        input_snr_filename = config.get("config", "input_snr_filename", "")
-    except ConfigParser.NoOptionError:
-        input_snr_filename = ""
-    output_filename_Gaussian = config.get("config", "output_filename_Gaussian")
-    output_filename_Rician = config.get("config", "output_filename_Rician")
-    if os.path.isfile(filename):
-        print 'Experiment from config file [', filename, ']'
-        now = time.clock()
-        MR_noisy = genfromtxt(input_filename, delimiter = ',')
-        if not input_snr_filename:
-            MR_SNR = array([0])
-            lpf = lpf_f
-        else:
-            MR_SNR = genfromtxt(input_snr_filename, delimiter = ',')
-            lpf = lpf_f
-        (MapaR_LM, MapaG_LM) = rice_homomorf_est(MR_noisy, MR_SNR, lpf, ex_filter_type);
-        numpy.savetxt(output_filename_Gaussian, MapaG_LM, delimiter = ',')
-        numpy.savetxt(output_filename_Rician, MapaR_LM, delimiter = ',')
-        print "Run time : " + str(time.clock() - now) + "s"
-    else:
-        print 'Wrong config file [', filename, ']'
