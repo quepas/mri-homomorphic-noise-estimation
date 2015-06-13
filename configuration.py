@@ -22,20 +22,20 @@ def build_default():
             }
 
 def build_from_file(filename):
-    configParser = ConfigParser.ConfigParser()
-    configParser.read(filename)
+    config_parser = ConfigParser.ConfigParser()
+    config_parser.read(filename)
     config = build_default()
-    config['ex_filter_type'] = configParser.getint("config", "ex_filter_type")
-    config['ex_window_size'] = configParser.getint("config", "ex_window_size")
-    config['ex_iterations'] = configParser.getint("config", "ex_iterations")
-    config['lpf_f'] = configParser.getfloat("config", "lpf_f")
-    config['lpf_f_SNR'] = configParser.getfloat("config", "lpf_f_SNR")
-    config['lpf_f_Rice'] = configParser.getfloat("config", "lpf_f_Rice")
-    config['input_filename'] = configParser.get("config", "input_filename")
-    if configParser.has_option("config", "input_filename_SNR"):
-        config['input_filename_SNR'] = configParser.get("config", "input_filename_SNR")
+    config['ex_filter_type'] = config_parser.getint("config", "ex_filter_type")
+    config['ex_window_size'] = config_parser.getint("config", "ex_window_size")
+    config['ex_iterations'] = config_parser.getint("config", "ex_iterations")
+    config['lpf_f'] = config_parser.getfloat("config", "lpf_f")
+    config['lpf_f_SNR'] = config_parser.getfloat("config", "lpf_f_SNR")
+    config['lpf_f_Rice'] = config_parser.getfloat("config", "lpf_f_Rice")
+    config['input_filename'] = config_parser.get("config", "input_filename")
+    if config_parser.has_option("config", "input_filename_SNR"):
+        config['input_filename_SNR'] = config_parser.get("config", "input_filename_SNR")
     else:
         config['input_filename_SNR'] = ""
-    config['output_filename_Gaussian'] = configParser.get("config", "output_filename_Gaussian")
-    config['output_filename_Rician'] = configParser.get("config", "output_filename_Rician")
+    config['output_filename_Gaussian'] = config_parser.get("config", "output_filename_Gaussian")
+    config['output_filename_Rician'] = config_parser.get("config", "output_filename_Rician")
     return config
