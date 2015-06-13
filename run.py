@@ -1,4 +1,5 @@
-import main
+from configuration import build_default
+from experiment import run_example_experiments
 import argparse
 
 __author__ = 'quepas, jakubsieradzki'
@@ -15,7 +16,8 @@ def run_program():
                        action = 'store')
     args = parser.parse_args()
     if args.example:
-        print "Rune exampels"
+        config = build_default()
+        run_example_experiments(config)
     elif args.config:
         print "Runing config"
     else:
@@ -23,4 +25,3 @@ def run_program():
 
 if __name__ == '__main__':
     run_program()
-
