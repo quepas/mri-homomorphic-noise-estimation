@@ -1,5 +1,5 @@
-from configuration import build_default
-from experiment import run_example_experiments
+from configuration import build_default, build_from_file
+from experiment import run_example_experiments, run_single_experiment
 import argparse
 
 __author__ = 'quepas, jakubsieradzki'
@@ -19,7 +19,8 @@ def run_program():
         config = build_default()
         run_example_experiments(config)
     elif args.config:
-        print "Runing config"
+        config = build_from_file(args.config)
+        run_single_experiment(config)
     else:
         print "Use help option [-h] to get some help."
 

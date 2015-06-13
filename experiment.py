@@ -5,7 +5,18 @@ import main
 __author__ = 'quepas, jakubsieradzki'
 
 def run_single_experiment(config):
-    None
+    now = clock()
+    noisy = genfromtxt(config['input_filename'], delimiter=',')
+    filename_snr = config['input_filename_SNR']
+    lpf = config['lpf_f']
+    if not filename_snr:
+        snr = array([0])
+    else:
+        snr = genfromtxt(filename_snr, delimiter=',')
+    (rician_map, gaussian_map) = main.rice_homomorf_est(noisy, snr, lpf, config['ex_filter_type']);
+    savetxt(config['output_filename_Gaussian'], gaussian_map, delimiter = ',')
+    savetxt(config['output_filename_Rician'], rician_map, delimiter = ',')
+    print "Run time : " + str(clock() - now) + "s"
 
 def run_example_experiments(config):
     input_noisy = genfromtxt(config['input_filename'], delimiter=',')
